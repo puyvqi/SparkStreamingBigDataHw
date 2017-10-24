@@ -1,4 +1,5 @@
 package Steamer;
+import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
 import org.apache.spark.*;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -16,10 +17,12 @@ import java.util.Iterator;
 public class Streamer {
     public static void main(String[] agrs){
 
-
+        Runnable r=new Server();
+        Thread t=new Thread(r);
+        t.start();
         System.setProperty("hadoop.home.dir", "E:\\hadoop-common-2.2.0-bin-master");
         SparkConf conf=new SparkConf().setAppName("streaming test").setMaster("local[2]");
-        JavaStreamingContext jsc=new JavaStreamingContext(conf,new Duration(1000));
+        JavaStreamingContext jsc=new JavaStreamingContext(conf,new Duration(3000));
         JavaReceiverInputDStream<String> lines = jsc.socketTextStream("127.0.0.1", 9999);
 
 
@@ -62,7 +65,9 @@ public class Streamer {
                 return String.join("|",strings);
             }
         });
-        result.print();
+        result.dstream().print();
+
+        //result.dstream().saveAsTextFiles("pr-time","txt");
 
         jsc.start();
 
